@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Build outputs
+dist/
+build/
+
+# Env files
+.env
+.env.*
+
+# Docker
+*.log
+
+# OS
+.DS_Store
