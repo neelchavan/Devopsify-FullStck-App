@@ -19,3 +19,72 @@ jobs:
           test -d backend
           test -d frontend
           test -d devops-infra
+
+  backend-ci:
+    runs-on: ubuntu-latest
+    needs: sanity-check
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+
+  frontend-ci:
+    runs-on: ubuntu-latest
+    needs: sanity-check
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Run frontend unit tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: |
+          docker build \
+            -t backend-test \
+            -f devops-infra/docker/backend/Dockerfile \
+            backend
+
+      - name: Build frontend Docker image
+        run: |
+          docker build \
+            -t frontend-test \
+            -f devops-infra/docker/frontend/Dockerfile \
+            frontend
